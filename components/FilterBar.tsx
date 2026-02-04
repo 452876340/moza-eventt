@@ -116,7 +116,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-primary transition-colors">search</span>
           <input 
             className="w-full bg-[#000000]/40 border border-white/5 rounded-xl pl-12 pr-4 py-4 text-white placeholder:text-white/30 focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none hover:bg-[#000000]/60" 
-            placeholder="搜索车手、车队 or ID..." 
+            placeholder="搜索车手" 
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}

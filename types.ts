@@ -10,7 +10,8 @@ export enum DriverTier {
 export enum RankTrend {
   UP = 'UP',
   DOWN = 'DOWN',
-  STABLE = 'STABLE'
+  STABLE = 'STABLE',
+  NEW = 'NEW'
 }
 
 export interface Driver {

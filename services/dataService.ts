@@ -30,27 +30,37 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
     }
   }
 
-  // 1. First get the current round if not specified
-  let targetRoundId = roundId;
-  if (!targetRoundId) {
-    const { data: rounds } = await supabase
-      .from('rounds')
-      .select('id')
-      .eq('series_id', seriesId)
-      .order('sequence', { ascending: false })
-      .limit(1);
-    
-    if (rounds && rounds.length > 0) {
-      targetRoundId = rounds[0].id;
-    }
-  }
+  // 1. Fetch all rounds to determine current and previous round
+  const { data: rounds } = await supabase
+    .from('rounds')
+    .select('id, sequence')
+    .eq('series_id', seriesId)
+    .order('sequence', { ascending: false });
 
-  if (!targetRoundId) {
+  if (!rounds || rounds.length === 0) {
     return []; // No rounds found
   }
 
-  // 2. Fetch rankings for the target round (drivers table removed, driver info is now in rankings)
-  const { data, error } = await supabase
+  let targetRoundId = roundId;
+  let prevRoundId: string | undefined;
+
+  if (!targetRoundId) {
+    // Default to the latest round (first in the list because of descending order)
+    targetRoundId = rounds[0].id;
+    if (rounds.length > 1) {
+      prevRoundId = rounds[1].id;
+    }
+  } else {
+    // Find index of targetRoundId
+    const index = rounds.findIndex(r => String(r.id) === String(targetRoundId));
+    if (index !== -1 && index < rounds.length - 1) {
+      // The previous round is the next one in the descending list
+      prevRoundId = rounds[index + 1].id;
+    }
+  }
+
+  // 2. Fetch rankings for the target round
+  const { data: currentData, error } = await supabase
     .from('rankings')
     .select('*')
     .eq('round_id', targetRoundId)
@@ -61,20 +71,111 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
     return [];
   }
 
+  // 3. Fetch rankings for the previous round to calculate trend
+  let prevRankingsMap = new Map<string, number>();
+  if (prevRoundId) {
+    const { data: prevData } = await supabase
+      .from('rankings')
+      .select('driver_id, rank')
+      .eq('round_id', prevRoundId);
+    
+    if (prevData) {
+      prevData.forEach((d: any) => {
+        prevRankingsMap.set(String(d.driver_id), d.rank);
+      });
+    }
+  }
+
   // Map database snake_case to TypeScript camelCase
-  return data.map((d: any) => ({
-    id: d.driver_id, // Driver ID stored directly in rankings
-    name: d.driver_id, // Using driver_id as name since we removed drivers table
-    tier: d.tier as DriverTier,
-    points: d.points,
-    safetyScore: d.safety_score,
-    podiums: d.podiums,
-    finishedRaces: d.finished_races,
-    totalRaces: d.total_races,
-    displayRaces: d.display_races,
-    rank: d.rank,
-    trend: d.trend as RankTrend,
-  }));
+  return currentData
+    .filter((d: any) => d.driver_id !== '__METADATA__') // Filter out metadata row
+    .map((d: any) => {
+      let extraData: any = {};
+      let displayRaces = d.display_races;
+
+      // Try parsing display_races as JSON
+      if (typeof d.display_races === 'string' && d.display_races.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(d.display_races);
+          if (parsed && typeof parsed === 'object') {
+             // Map Chinese keys from JSON to our internal structure
+             // Keys: "排名", "车手ID", "等级", "积分", "安全分", "领奖台", "完赛 | 总场次"
+             if (parsed['排名']) extraData.rank = parseInt(parsed['排名']);
+             if (parsed['车手ID']) extraData.name = parsed['车手ID'];
+             if (parsed['等级']) {
+               const tierVal = parsed['等级'];
+               // Map 'Rookie' to 'R' to match the DriverTier enum and icon filename
+               extraData.tier = tierVal === 'Rookie' ? 'R' : tierVal;
+             }
+             if (parsed['积分']) extraData.points = parseInt(parsed['积分']);
+             if (parsed['安全分']) extraData.safetyScore = parseInt(parsed['安全分']);
+             if (parsed['领奖台']) extraData.podiums = parseInt(parsed['领奖台']);
+             
+             // Once we successfully parse the JSON, we should NOT show the raw JSON string anymore.
+              // Default displayRaces to undefined so it doesn't show garbage.
+              displayRaces = undefined;
+
+              // Find key for races data flexibly
+              const racesKey = Object.keys(parsed).find(k => k.includes('完赛') && (k.includes('总场次') || k.includes('场次')));
+              
+              if (racesKey && parsed[racesKey]) {
+                 const raceStr = String(parsed[racesKey]);
+                 // Handle both full-width and half-width pipes, with or without spaces
+                 const parts = raceStr.split(/[|｜]/);
+                 
+                 if (parts.length === 2) {
+                   const finished = parseInt(parts[0].trim());
+                   const total = parseInt(parts[1].trim());
+                   
+                   if (!isNaN(finished)) extraData.finishedRaces = finished;
+                   if (!isNaN(total)) extraData.totalRaces = total;
+                 } else {
+                   // If we can't split it into two numbers, just show the string value
+                   displayRaces = raceStr;
+                 }
+              }
+          }
+        } catch (e) {
+          // Ignore parsing error, fallback to raw value
+          console.warn('Failed to parse display_races JSON for driver:', d.driver_id, e);
+        }
+      }
+
+      // Calculate Trend
+      let trend = RankTrend.STABLE;
+      const currentRank = extraData.rank !== undefined ? extraData.rank : d.rank;
+      const driverId = String(d.driver_id);
+      
+      // Only calculate trend if we have a previous round to compare against
+      if (prevRoundId) {
+        if (prevRankingsMap.has(driverId)) {
+            const prevRank = prevRankingsMap.get(driverId)!;
+            if (currentRank < prevRank) trend = RankTrend.UP;
+            else if (currentRank > prevRank) trend = RankTrend.DOWN;
+            else trend = RankTrend.STABLE;
+        } else {
+            // Driver was not in the previous round
+            trend = RankTrend.NEW;
+        }
+      } else {
+          // If no previous round (e.g. first round), everyone is STABLE
+          trend = RankTrend.STABLE;
+      }
+
+      return {
+        id: String(d.driver_id), // Ensure string
+        name: String(extraData.name || d.driver_id || ''), // Ensure string
+        tier: (extraData.tier || d.tier) as DriverTier,
+        points: extraData.points !== undefined ? extraData.points : d.points,
+        safetyScore: extraData.safetyScore !== undefined ? extraData.safetyScore : d.safety_score,
+        podiums: extraData.podiums !== undefined ? extraData.podiums : d.podiums,
+        finishedRaces: extraData.finishedRaces !== undefined ? extraData.finishedRaces : d.finished_races,
+        totalRaces: extraData.totalRaces !== undefined ? extraData.totalRaces : d.total_races,
+        displayRaces: displayRaces,
+        rank: extraData.rank !== undefined ? extraData.rank : d.rank,
+        trend: trend,
+      };
+    });
 };
 
 export const fetchRaceRounds = async (seriesId: string = 'monthly'): Promise<RaceRound[]> => {

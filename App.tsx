@@ -84,20 +84,6 @@ const App: React.FC = () => {
         {currentSeriesRules && <SeriesInfo rules={currentSeriesRules} />}
       </main>
       
-      {/* Footer */}
-      <footer className="w-full flex justify-center border-t border-[#e6e1db] dark:border-[#2d261f] py-8 mt-auto">
-        <div className="w-full max-w-[1200px] px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] font-bold text-[#8a7960] uppercase tracking-widest">
-          <div className="flex items-center gap-2 group cursor-default">
-            <span className="material-symbols-outlined text-primary text-base group-hover:animate-spin">speed</span>
-            <span>株洲速度节 • 官方赛事门户</span>
-          </div>
-          <div className="flex gap-8">
-            <a className="hover:text-primary transition-colors" href="#">安全协议</a>
-            <a className="hover:text-primary transition-colors" href="#">条款与条件</a>
-            <p>© 2024</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
