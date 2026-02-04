@@ -1,0 +1,8 @@
+
+{
+  "name": "株洲速度节 (Zhuzhou Speed Festival) Portal",
+  "description": "A premium racing competition portal for the Zhuzhou Speed Festival, featuring real-time leaderboards, driver stats, and an AI-powered racing analyst.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
