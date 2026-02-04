@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SeriesRules } from '../types';
+import xcxImg from '@/src/assets/xcx.jpg';
 
 interface SeriesInfoProps {
   rules: SeriesRules;
@@ -7,6 +8,25 @@ interface SeriesInfoProps {
 
 const SeriesInfo: React.FC<SeriesInfoProps> = ({ rules }) => {
   const [showQR, setShowQR] = useState(false);
+  const qrRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (showQR && 
+          qrRef.current && 
+          !qrRef.current.contains(event.target as Node) &&
+          buttonRef.current &&
+          !buttonRef.current.contains(event.target as Node)
+         ) {
+        setShowQR(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showQR]);
 
   return (
     <>
@@ -92,47 +112,43 @@ const SeriesInfo: React.FC<SeriesInfoProps> = ({ rules }) => {
                 </ul>
               </div>
               
-              <button 
-                onClick={() => isPrimary ? window.open('https://www.mozaracing.cn/sys-nd/371.html', '_blank') : setShowQR(true)}
-                className={`w-full py-4 mt-2 font-black uppercase tracking-widest text-xs rounded-xl hover:scale-[1.02] transition-transform shadow-lg ${
-                isPrimary 
-                  ? 'bg-background-dark dark:bg-primary text-primary dark:text-black' 
-                  : 'bg-[#f5f3f0] dark:bg-[#2d261f] text-[#181511] dark:text-white hover:bg-tier-rookie hover:text-white'
-              }`}>
-                {isPrimary ? '查看完整规则' : '申请加入'}
-              </button>
+              <div className="relative w-full mt-2">
+                 {!isPrimary && showQR && (
+                   <div ref={qrRef} className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-64 bg-white dark:bg-[#1a1612] p-4 rounded-xl shadow-2xl border border-[#e6e1db] dark:border-[#2d261f] z-50 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="text-center">
+                        <h3 className="text-lg font-black uppercase italic mb-2 text-[#181511] dark:text-white">加入赛事</h3>
+                        <div className="bg-white p-2 rounded-lg border border-dashed border-[#e6e1db] mx-auto w-48 h-48 flex items-center justify-center mb-2">
+                          <img src={xcxImg} alt="小程序二维码" className="w-full h-full object-cover" />
+                        </div>
+                        <p className="text-[10px] text-gray-500 font-bold">点击按钮关闭</p>
+                      </div>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-2 border-8 border-transparent border-t-white dark:border-t-[#1a1612]"></div>
+                   </div>
+                 )}
+
+                 <button 
+                  ref={!isPrimary ? buttonRef : null}
+                  onClick={() => {
+                    if (isPrimary) {
+                      window.open('https://www.mozaracing.cn/sys-nd/371.html', '_blank');
+                    } else {
+                      setShowQR(!showQR);
+                    }
+                  }}
+                  className={`w-full py-4 font-black uppercase tracking-widest text-xs rounded-xl hover:scale-[1.02] transition-transform shadow-lg ${
+                  isPrimary 
+                    ? 'bg-background-dark dark:bg-primary text-primary dark:text-black' 
+                    : 'bg-[#f5f3f0] dark:bg-[#2d261f] text-[#181511] dark:text-white hover:bg-tier-rookie hover:text-white'
+                }`}>
+                  {isPrimary ? '查看完整规则' : showQR ? '关闭二维码' : '申请加入'}
+                </button>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {showQR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={() => setShowQR(false)}>
-          <div 
-            className="bg-white dark:bg-[#1a1612] p-8 rounded-2xl max-w-sm w-full text-center relative shadow-2xl border border-[#e6e1db] dark:border-[#2d261f] transform transition-all scale-100" 
-            onClick={e => e.stopPropagation()}
-          >
-            <button 
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              onClick={() => setShowQR(false)}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-            
-            <h3 className="text-2xl font-black uppercase italic mb-2 text-[#181511] dark:text-white tracking-tighter">加入赛事</h3>
-            <p className="text-xs font-bold text-[#8a7960] uppercase tracking-widest mb-6">扫描下方二维码进入小程序</p>
-            
-            <div className="bg-white p-2 rounded-xl border-2 border-dashed border-[#e6e1db] mx-auto w-64 h-64 flex items-center justify-center mb-6 relative overflow-hidden group">
-               <img src="/xcx.jpg" alt="小程序二维码" className="w-full h-full object-cover" />
-            </div>
-            
-            <p className="text-xs text-gray-500 font-medium leading-relaxed">
-              请使用微信 "扫一扫" 功能<br/>
-              获取详细参赛指引与报名信息
-            </p>
-          </div>
-        </div>
-      )}
+
     </>
   );
 };
