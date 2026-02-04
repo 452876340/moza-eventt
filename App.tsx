@@ -17,30 +17,45 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadSeriesData = async () => {
       setLoading(true);
       try {
-        const [driversData, roundsData] = await Promise.all([
-          fetchDrivers(selectedSeries),
-          fetchRaceRounds(selectedSeries)
-        ]);
-        setDrivers(driversData);
+        const roundsData = await fetchRaceRounds(selectedSeries);
         setRaceRounds(roundsData);
         
         // Reset selected round when series changes or rounds data is loaded
         if (roundsData.length > 0) {
-          setSelectedRound(roundsData[0].name);
+          setSelectedRound(String(roundsData[0].id));
         } else {
           setSelectedRound('');
+          setDrivers([]);
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Failed to load data', error);
+        console.error('Failed to load series data', error);
+        setLoading(false);
+      }
+    };
+    loadSeriesData();
+  }, [selectedSeries]);
+
+  useEffect(() => {
+    if (!selectedRound) return;
+
+    const loadDriversData = async () => {
+      setLoading(true);
+      try {
+        const driversData = await fetchDrivers(selectedSeries, selectedRound);
+        setDrivers(driversData);
+      } catch (error) {
+        console.error('Failed to load drivers', error);
       } finally {
         setLoading(false);
       }
     };
-    loadData();
-  }, [selectedSeries]);
+
+    loadDriversData();
+  }, [selectedRound, selectedSeries]);
 
   const filteredDrivers = useMemo(() => {
     return drivers.filter(d => 

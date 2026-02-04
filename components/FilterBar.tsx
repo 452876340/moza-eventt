@@ -97,7 +97,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   // Map series to options
   const seriesOptions = seriesList.map(s => ({ value: s.id, label: s.name }));
   // Map rounds to options
-  const roundOptions = rounds.map(r => ({ value: r.name, label: r.name }));
+  const roundOptions = rounds.map(r => ({ value: String(r.id), label: r.name }));
 
   return (
     <div className="w-full max-w-[1200px] px-6 -mt-32 relative z-30 mb-8">
