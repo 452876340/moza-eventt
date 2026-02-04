@@ -93,7 +93,7 @@ const SeriesInfo: React.FC<SeriesInfoProps> = ({ rules }) => {
               </div>
               
               <button 
-                onClick={() => !isPrimary && setShowQR(true)}
+                onClick={() => isPrimary ? window.open('https://www.mozaracing.cn/sys-nd/371.html', '_blank') : setShowQR(true)}
                 className={`w-full py-4 mt-2 font-black uppercase tracking-widest text-xs rounded-xl hover:scale-[1.02] transition-transform shadow-lg ${
                 isPrimary 
                   ? 'bg-background-dark dark:bg-primary text-primary dark:text-black' 
