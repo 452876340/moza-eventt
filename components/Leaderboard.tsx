@@ -128,7 +128,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
                       {driver.trend === RankTrend.NEW && <span className="material-symbols-outlined text-blue-500 text-sm md:text-base font-bold">fiber_new</span>}
                     </div>
                   </td>
-                  <td className="sticky left-0 z-10 bg-white dark:bg-[#1a1612] group-hover:bg-[#fcfbf9] dark:group-hover:bg-[#231d16] px-1 py-1 md:px-4 md:py-1.5 font-bold text-xs md:text-lg text-[#181511] dark:text-white group-hover:text-primary transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap">
+                  <td className="sticky left-0 z-10 bg-white dark:bg-[#1a1612] group-hover:bg-[#fcfbf9] dark:group-hover:bg-[#231d16] px-1 py-1 md:px-4 md:py-1.5 font-bold text-xs md:text-lg !text-[#181511] dark:!text-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap">
                     {driver.name || '-'}
                   </td>
                   
