@@ -73,9 +73,14 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
         <div className="overflow-x-auto max-h-[350px] md:max-h-[600px] overflow-y-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="sticky top-0 z-20 bg-[#fcfbf9] dark:bg-[#231d16] text-xs md:text-sm font-bold text-[#8a7960]">
+              <tr className="sticky top-0 z-30 bg-[#fcfbf9] dark:bg-[#231d16] text-xs md:text-sm font-bold text-[#8a7960]">
                 <th className="px-1 py-1 md:px-4 md:py-1.5 whitespace-nowrap">排名</th>
-                <th className="sticky left-0 z-10 bg-[#fcfbf9] dark:bg-[#231d16] px-1 py-1 md:px-4 md:py-1.5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap">车手ID</th>
+                <th 
+                  style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }}
+                  className="sticky left-0 z-30 bg-[#fcfbf9] dark:bg-[#231d16] px-1 py-1 md:px-4 md:py-1.5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap"
+                >
+                  车手ID
+                </th>
                 {!isRally && <th className="px-1 py-1 md:px-4 md:py-1.5 whitespace-nowrap">等级</th>}
                 <th className="px-1 py-1 md:px-4 md:py-1.5 text-center text-primary whitespace-nowrap">积分</th>
                 {!isRally && <th className="px-1 py-1 md:px-4 md:py-1.5 text-center whitespace-nowrap">安全分</th>}
@@ -90,7 +95,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
                     <td className="px-1 py-1 md:px-4 md:py-1.5">
                       <div className="h-6 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
                     </td>
-                    <td className="sticky left-0 z-10 bg-white dark:bg-[#1a1612] px-1 py-1 md:px-4 md:py-1.5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <td 
+                      style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }}
+                      className="sticky left-0 z-20 bg-white dark:bg-[#1a1612] px-1 py-1 md:px-4 md:py-1.5 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
+                    >
                        <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
                     </td>
                     {!isRally && (
@@ -128,7 +136,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
                       {driver.trend === RankTrend.NEW && <span className="material-symbols-outlined text-blue-500 text-sm md:text-base font-bold">fiber_new</span>}
                     </div>
                   </td>
-                  <td className="sticky left-0 z-10 bg-white dark:bg-[#1a1612] group-hover:bg-[#fcfbf9] dark:group-hover:bg-[#231d16] px-1 py-1 md:px-4 md:py-1.5 font-bold text-xs md:text-lg !text-[#181511] dark:!text-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap">
+                  <td 
+                    style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }}
+                    className="sticky left-0 z-20 bg-white dark:bg-[#1a1612] px-1 py-1 md:px-4 md:py-1.5 font-bold text-xs md:text-lg !text-[#181511] dark:!text-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap"
+                  >
                     {driver.name || '-'}
                   </td>
                   
