@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import FilterBar from './components/FilterBar';
 import Leaderboard from './components/Leaderboard';
@@ -15,6 +15,7 @@ const App: React.FC = () => {
   const [selectedRound, setSelectedRound] = useState('');
   const [selectedSeries, setSelectedSeries] = useState(SERIES_LIST[0].id);
   const [loading, setLoading] = useState(true);
+  const appRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadSeriesData = async () => {
@@ -69,18 +70,21 @@ const App: React.FC = () => {
   // Auto-resize iframe logic
   useEffect(() => {
     const sendHeight = () => {
-      const height = document.documentElement.scrollHeight;
-      window.parent.postMessage({ type: 'resize', height }, '*');
+      if (appRef.current) {
+        const height = appRef.current.offsetHeight;
+        window.parent.postMessage({ type: 'resize', height }, '*');
+      }
     };
 
     const resizeObserver = new ResizeObserver(sendHeight);
-    resizeObserver.observe(document.body);
-    resizeObserver.observe(document.documentElement);
+    if (appRef.current) {
+      resizeObserver.observe(appRef.current);
+    }
 
     sendHeight();
     window.addEventListener('resize', sendHeight);
     
-    const timeoutId = setTimeout(sendHeight, 100);
+    const timeoutId = setTimeout(sendHeight, 500);
 
     return () => {
       resizeObserver.disconnect();
@@ -90,7 +94,7 @@ const App: React.FC = () => {
   }, [drivers, raceRounds, selectedSeries, selectedRound]);
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div ref={appRef} className="w-full flex flex-col items-center">
       <main className="w-full flex flex-col items-center">
         <Header title={currentSeriesRules?.title} seriesId={selectedSeries} />
         <FilterBar 
