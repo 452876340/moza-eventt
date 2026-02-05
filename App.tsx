@@ -66,6 +66,29 @@ const App: React.FC = () => {
 
   const currentSeriesRules = SERIES_RULES[selectedSeries];
 
+  // Auto-resize iframe logic
+  useEffect(() => {
+    const sendHeight = () => {
+      const height = document.documentElement.scrollHeight;
+      window.parent.postMessage({ type: 'resize', height }, '*');
+    };
+
+    const resizeObserver = new ResizeObserver(sendHeight);
+    resizeObserver.observe(document.body);
+    resizeObserver.observe(document.documentElement);
+
+    sendHeight();
+    window.addEventListener('resize', sendHeight);
+    
+    const timeoutId = setTimeout(sendHeight, 100);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', sendHeight);
+      clearTimeout(timeoutId);
+    };
+  }, [drivers, raceRounds, selectedSeries, selectedRound]);
+
   return (
     <div className="min-h-screen flex flex-col items-center">
       <main className="w-full flex flex-col items-center">
