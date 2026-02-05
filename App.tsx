@@ -90,7 +90,7 @@ const App: React.FC = () => {
   }, [drivers, raceRounds, selectedSeries, selectedRound]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
+    <div className="w-full flex flex-col items-center">
       <main className="w-full flex flex-col items-center">
         <Header title={currentSeriesRules?.title} seriesId={selectedSeries} />
         <FilterBar 
