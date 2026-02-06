@@ -43,7 +43,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
   const getHeaderClass = (col: string) => {
     const base = "px-1 py-1 md:px-4 md:py-1.5 whitespace-nowrap";
     if (col === '车手ID') return `sticky left-0 z-30 bg-[#fcfbf9] dark:bg-[#231d16] ${base} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]`;
-    if (col === '积分') return `${base} text-center text-primary`;
+    if (col === '积分' || col === '赛事分') return `${base} text-center text-primary`;
     if (col === '完赛 | 总场次') return `${base} text-right`;
     if (['安全分', '领奖台'].includes(col)) return `${base} text-center`;
     return `${base} text-center`; // Default centered
@@ -52,7 +52,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
   const getCellClass = (col: string) => {
     const base = "px-1 py-1 md:px-4 md:py-1.5";
     if (col === '车手ID') return `sticky left-0 z-20 bg-white dark:bg-[#1a1612] ${base} font-bold text-xs md:text-lg !text-[#181511] dark:!text-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap`;
-    if (col === '积分') return `${base} text-center font-bold text-primary text-sm md:text-lg`;
+    if (col === '积分' || col === '赛事分') return `${base} text-center font-bold text-primary text-sm md:text-lg`;
     if (col === '完赛 | 总场次') return `${base} text-right font-mono text-[10px] md:text-sm font-bold text-[#8a7960]`;
     if (col === '安全分') return `${base} text-center font-bold text-sm md:text-lg`;
     if (col === '领奖台') return `${base} text-center text-sm md:text-lg`;
@@ -185,7 +185,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
                     }
                     // Generic handling for known and unknown fields
                     let content: React.ReactNode = '-';
-                    if (col === '积分') content = driver.points;
+                    if (col === '积分' || col === '赛事分') content = driver.points;
                     else if (col === '安全分') content = driver.safetyScore;
                     else if (col === '领奖台') content = driver.podiums;
                     else if (driver.rawJson && driver.rawJson[col] !== undefined) {
