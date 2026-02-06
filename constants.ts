@@ -4,10 +4,10 @@ import { Driver, DriverTier, RankTrend, RaceRound, Series, SeriesRules } from '.
 export const BACKGROUND_IMAGE_URL = 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=2070&auto=format&fit=crop';
 
 export const SERIES_BANNERS: Record<string, string> = {
-  monthly: 'https://29673492.s21i.faiusr.com/2/ABUIABACGAAgxZODygYoyKi75gMwgA84jgY.jpg',
-  zhuzhou: 'https://29673492.s21i.faiusr.com/2/ABUIABACGAAgxZODygYo0uOl8AYwgA84jgY.jpg',
-  rally: 'https://29673492.s21i.faiusr.com/2/ABUIABACGAAgxZODygYohICnRTCADziOBg.jpg',
-  iracing: 'https://29673492.s21i.faiusr.com/2/ABUIABACGAAglZWDygYogcfgjAYw_Ao4kwY.jpg',
+  monthly: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguqOQzAYosqqWzwIwgA84jgY.jpg',
+  zhuzhou: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguqOQzAYo36ys8gcwgA84jgY.jpg',
+  rally: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguaOQzAYogtyw-wEwgA84jgY.jpg',
+  iracing: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguqOQzAYozv3x7wUw_Ao4kwY.jpg',
 };
 
 export const SERIES_LIST: Series[] = [

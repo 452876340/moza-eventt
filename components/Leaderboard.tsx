@@ -156,7 +156,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading 
                     if (col === '等级') {
                       return (
                         <td key={col} className="px-1 py-1 md:px-4 md:py-1.5">
-                          <div className="flex justify-start">
+                          <div className="flex justify-center">
                             <img 
                               src={tierIcons[driver.tier as string] || tierIcons['R']} 
                               alt={driver.tier} 
