@@ -10,6 +10,7 @@ import { SERIES_LIST, SERIES_RULES } from './constants';
 
 const App: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
   const [raceRounds, setRaceRounds] = useState<RaceRound[]>([]);
   const [search, setSearch] = useState('');
   const [selectedRound, setSelectedRound] = useState('');
@@ -46,8 +47,9 @@ const App: React.FC = () => {
     const loadDriversData = async () => {
       setLoading(true);
       try {
-        const driversData = await fetchDrivers(selectedSeries, selectedRound);
+        const { drivers: driversData, columns: columnsData } = await fetchDrivers(selectedSeries, selectedRound);
         setDrivers(driversData);
+        setColumns(columnsData);
       } catch (error) {
         console.error('Failed to load drivers', error);
       } finally {
@@ -107,7 +109,7 @@ const App: React.FC = () => {
           setSelectedSeries={setSelectedSeries}
           seriesList={SERIES_LIST}
         />
-        <Leaderboard drivers={filteredDrivers} seriesId={selectedSeries} isLoading={loading} />
+        <Leaderboard drivers={filteredDrivers} seriesId={selectedSeries} isLoading={loading} columns={columns} />
         {currentSeriesRules && <SeriesInfo rules={currentSeriesRules} />}
       </main>
       

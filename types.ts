@@ -26,6 +26,7 @@ export interface Driver {
   displayRaces?: string; // For custom display like "43"
   rank: number;
   trend: RankTrend;
+  rawJson?: Record<string, any>;
 }
 
 export interface RaceRound {

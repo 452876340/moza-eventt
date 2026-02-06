@@ -17,17 +17,31 @@ const isSupabaseConfigured = () => {
   return !!env?.VITE_SUPABASE_URL && !!env?.VITE_SUPABASE_ANON_KEY && env?.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 };
 
-export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: string): Promise<Driver[]> => {
+const DEFAULT_COLUMNS = ['排名', '车手ID', '等级', '积分', '安全分', '领奖台', '完赛 | 总场次'];
+
+export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: string): Promise<{ drivers: Driver[], columns: string[] }> => {
   if (!isSupabaseConfigured()) {
     console.warn(`Supabase not configured, using mock data for drivers (Series: ${seriesId}).`);
+    let drivers: Driver[] = [];
+    let columns = DEFAULT_COLUMNS;
+    
     switch (seriesId) {
-      case 'zhuzhou': return MOCK_DRIVERS_ZHUZHOU;
-      case 'rally': return MOCK_DRIVERS_RALLY;
-      case 'iracing': return MOCK_DRIVERS_IRACING;
+      case 'zhuzhou': 
+        drivers = MOCK_DRIVERS_ZHUZHOU; 
+        break;
+      case 'rally': 
+        drivers = MOCK_DRIVERS_RALLY; 
+        columns = ['排名', '车手ID', '积分', '领奖台', '完赛 | 总场次'];
+        break;
+      case 'iracing': 
+        drivers = MOCK_DRIVERS_IRACING; 
+        break;
       case 'monthly':
       default:
-        return MOCK_DRIVERS_MONTHLY;
+        drivers = MOCK_DRIVERS_MONTHLY; 
+        break;
     }
+    return { drivers, columns };
   }
 
   // 1. Fetch all rounds to determine current and previous round
@@ -38,7 +52,7 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
     .order('sequence', { ascending: false });
 
   if (!rounds || rounds.length === 0) {
-    return []; // No rounds found
+    return { drivers: [], columns: DEFAULT_COLUMNS }; // No rounds found
   }
 
   let targetRoundId = roundId;
@@ -68,7 +82,7 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
 
   if (error) {
     console.error('Error fetching drivers:', error);
-    return [];
+    return { drivers: [], columns: DEFAULT_COLUMNS };
   }
 
   // 3. Fetch rankings for the previous round to calculate trend
@@ -86,8 +100,10 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
     }
   }
 
+  let columns: string[] = [];
+
   // Map database snake_case to TypeScript camelCase
-  return currentData
+  const drivers = currentData
     .filter((d: any) => d.driver_id !== '__METADATA__') // Filter out metadata row
     .map((d: any) => {
       let extraData: any = {};
@@ -98,6 +114,12 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
         try {
           const parsed = JSON.parse(d.display_races);
           if (parsed && typeof parsed === 'object') {
+             // Capture columns from the first valid JSON
+             if (columns.length === 0) {
+                 columns = Object.keys(parsed);
+             }
+             extraData.rawJson = parsed;
+
              // Map Chinese keys from JSON to our internal structure
              // Keys: "排名", "车手ID", "等级", "积分", "安全分", "领奖台", "完赛 | 总场次"
              if (parsed['排名']) extraData.rank = parseInt(parsed['排名']);
@@ -174,8 +196,15 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
         displayRaces: displayRaces,
         rank: extraData.rank !== undefined ? extraData.rank : d.rank,
         trend: trend,
+        rawJson: extraData.rawJson,
       };
     });
+
+  if (columns.length === 0) {
+    columns = DEFAULT_COLUMNS;
+  }
+
+  return { drivers, columns };
 };
 
 export const fetchRaceRounds = async (seriesId: string = 'monthly'): Promise<RaceRound[]> => {
