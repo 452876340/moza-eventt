@@ -101,6 +101,20 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
   }
 
   let columns: string[] = [];
+  
+  // 4. Try to find __METADATA__ row first to get columns
+  const metadataRow = currentData.find((d: any) => d.driver_id === '__METADATA__');
+  if (metadataRow && metadataRow.display_races) {
+    try {
+      const parsed = JSON.parse(metadataRow.display_races);
+      if (parsed && Array.isArray(parsed.columns)) {
+        columns = parsed.columns;
+      }
+    } catch (e) {
+      console.warn('Failed to parse metadata columns:', e);
+    }
+  }
+
   let jsonCount = 0;
 
   // Map database snake_case to TypeScript camelCase
@@ -115,13 +129,16 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
         try {
           const parsed = JSON.parse(d.display_races);
           if (parsed && typeof parsed === 'object') {
-             jsonCount++;
-             // Capture columns. Prefer the 2nd valid JSON (jsonCount === 2) as it's more likely to be correct data
-             // but take the 1st one initially as a fallback.
-             if (jsonCount === 1) {
-                 columns = Object.keys(parsed);
-             } else if (jsonCount === 2) {
-                 columns = Object.keys(parsed);
+             // If columns not found in metadata, try to infer from data
+             if (columns.length === 0) {
+                 jsonCount++;
+                 // Capture columns. Prefer the 2nd valid JSON (jsonCount === 2) as it's more likely to be correct data
+                 // but take the 1st one initially as a fallback.
+                 if (jsonCount === 1) {
+                     columns = Object.keys(parsed);
+                 } else if (jsonCount === 2) {
+                     columns = Object.keys(parsed);
+                 }
              }
              extraData.rawJson = parsed;
 
