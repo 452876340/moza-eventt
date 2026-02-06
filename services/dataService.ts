@@ -101,6 +101,7 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
   }
 
   let columns: string[] = [];
+  let jsonCount = 0;
 
   // Map database snake_case to TypeScript camelCase
   const drivers = currentData
@@ -114,8 +115,12 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
         try {
           const parsed = JSON.parse(d.display_races);
           if (parsed && typeof parsed === 'object') {
-             // Capture columns from the first valid JSON
-             if (columns.length === 0) {
+             jsonCount++;
+             // Capture columns. Prefer the 2nd valid JSON (jsonCount === 2) as it's more likely to be correct data
+             // but take the 1st one initially as a fallback.
+             if (jsonCount === 1) {
+                 columns = Object.keys(parsed);
+             } else if (jsonCount === 2) {
                  columns = Object.keys(parsed);
              }
              extraData.rawJson = parsed;

@@ -1,6 +1,6 @@
 
 {
-  "name": "株洲速度节 (Zhuzhou Speed Festival) Portal",
+  "name": "赛事排名 - MOZA魔爪赛车模拟器",
   "description": "A premium racing competition portal for the Zhuzhou Speed Festival, featuring real-time leaderboards, driver stats, and an AI-powered racing analyst.",
   "requestFramePermissions": [
     "microphone"
