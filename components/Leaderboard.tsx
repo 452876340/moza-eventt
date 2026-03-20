@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
-import { Driver, DriverTier, RankTrend } from '../types';
-import tierS from '@/src/assets/ico/S.png';
-import tierA from '@/src/assets/ico/A.png';
-import tierB from '@/src/assets/ico/B.png';
-import tierC from '@/src/assets/ico/C.png';
-import tierR from '@/src/assets/ico/R.png';
+import React, { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Dot, Minus, Sparkles } from "lucide-react";
+import { Driver, DriverTier, RankTrend } from "../types";
+import tierS from "@/assets/ico/S.png";
+import tierA from "@/assets/ico/A.png";
+import tierB from "@/assets/ico/B.png";
+import tierC from "@/assets/ico/C.png";
+import tierR from "@/assets/ico/R.png";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const tierIcons: Record<string, string> = {
-  S: tierS,
-  A: tierA,
-  B: tierB,
-  C: tierC,
-  R: tierR,
-  Rookie: tierR
-};
+const tierIcons: Record<string, string> = { S: tierS, A: tierA, B: tierB, C: tierC, R: tierR, Rookie: tierR };
 
 interface LeaderboardProps {
   drivers: Driver[];
@@ -23,192 +20,215 @@ interface LeaderboardProps {
 }
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ drivers, seriesId, isLoading = false, columns = [] }) => {
-  const [filterTier, setFilterTier] = useState<string>('all');
+  const [filterTier, setFilterTier] = useState<string>("all");
+  const [expandedRowIds, setExpandedRowIds] = useState<Record<string, boolean>>({});
+  const isRally = seriesId === "rally";
 
-  const filteredDrivers = drivers.filter(d => {
-    if (filterTier === 'all') return true;
-    if (filterTier === 'S') return d.tier === DriverTier.S;
-    if (filterTier === 'AB') return d.tier === DriverTier.A || d.tier === DriverTier.B;
-    if (filterTier === 'CR') return d.tier === DriverTier.C || d.tier === DriverTier.R;
-    return true;
-  });
+  const displayColumns =
+    columns.length > 0
+      ? columns
+      : ["排名", "车手ID", "等级", "积分", "安全分", "领奖台", "完赛 | 总场次"].filter(
+          (c) => !isRally || (c !== "等级" && c !== "安全分")
+        );
 
-  const isRally = seriesId === 'rally';
-  
-  // Use passed columns or default if empty (fallback)
-  const displayColumns = columns.length > 0 
-    ? columns 
-    : ['排名', '车手ID', '等级', '积分', '安全分', '领奖台', '完赛 | 总场次'].filter(c => !isRally || (c !== '等级' && c !== '安全分'));
+  const mobileScoreColumn = displayColumns.includes("积分") ? "积分" : displayColumns.includes("赛事分") ? "赛事分" : "";
+  const mobileCoreColumns = ["排名", "车手ID", "等级", mobileScoreColumn].filter((c) => c && displayColumns.includes(c));
+  const mobileSecondaryColumns = displayColumns.filter((c) => !mobileCoreColumns.includes(c));
+  const hasMobileSecondaryColumns = mobileSecondaryColumns.length > 0;
+  const noRightAlignColumns = new Set(["排名", "车手ID", "等级"]);
 
-  const getHeaderClass = (col: string) => {
-    const base = "px-1 py-1 md:px-4 md:py-1.5 whitespace-nowrap";
-    if (col === '车手ID') return `sticky left-0 z-30 bg-[#fcfbf9] dark:bg-[#231d16] ${base} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]`;
-    if (['积分', '赛事分'].includes(col)) return `${base} text-center text-primary`;
-    if (col === '完赛 | 总场次') return `${base} text-right`;
-    if (['安全分', '领奖台'].includes(col)) return `${base} text-center`;
-    return `${base} text-center`; // Default centered
+  const mobileGridClass = useMemo(() => {
+    if (mobileSecondaryColumns.length === 2) return "grid-cols-2";
+    if (mobileSecondaryColumns.length === 3) return "grid-cols-3";
+    return "grid-cols-2";
+  }, [mobileSecondaryColumns.length]);
+
+  const filteredDrivers = useMemo(() => {
+    if (!displayColumns.includes("等级") || filterTier === "all") return drivers;
+    if (filterTier === "S") return drivers.filter((d) => d.tier === DriverTier.S);
+    if (filterTier === "AB") return drivers.filter((d) => d.tier === DriverTier.A || d.tier === DriverTier.B);
+    return drivers.filter((d) => d.tier === DriverTier.C || d.tier === DriverTier.R);
+  }, [displayColumns, drivers, filterTier]);
+
+  const trendNode = (trend: RankTrend) => {
+    if (trend === RankTrend.UP) return <ArrowUp className="h-4 w-4 text-emerald-500" />;
+    if (trend === RankTrend.DOWN) return <ArrowDown className="h-4 w-4 text-rose-500" />;
+    if (trend === RankTrend.NEW) return <Sparkles className="h-4 w-4 text-sky-500" />;
+    return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
-  const getCellClass = (col: string) => {
-    const base = "px-1 py-1 md:px-4 md:py-1.5";
-    if (col === '车手ID') return `sticky left-0 z-20 bg-white dark:bg-[#1a1612] ${base} font-bold text-xs md:text-lg !text-[#181511] dark:!text-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] whitespace-nowrap`;
-    if (['积分', '赛事分'].includes(col)) return `${base} text-center font-bold text-primary text-sm md:text-lg`;
-    if (col === '完赛 | 总场次') return `${base} text-right font-mono text-[10px] md:text-sm font-bold text-[#8a7960]`;
-    if (col === '安全分') return `${base} text-center font-bold text-sm md:text-lg`;
-    if (col === '领奖台') return `${base} text-center text-sm md:text-lg`;
-    
-    // Default for unknown columns
-    return `${base} text-center text-sm md:text-lg`;
+  const getValue = (driver: Driver, col: string) => {
+    if (col === "完赛 | 总场次") {
+      if (driver.displayRaces) return driver.displayRaces.replace("｜", " | ");
+      return `${driver.finishedRaces ?? "-"} | ${driver.totalRaces ?? "-"}`;
+    }
+    if (col === "积分") return driver.points;
+    if (col === "赛事分") return driver.rawJson?.["赛事分"] ?? driver.points;
+    if (col === "安全分") return driver.safetyScore ?? "-";
+    if (col === "领奖台") return driver.podiums;
+    if (driver.rawJson && driver.rawJson[col] !== undefined) return driver.rawJson[col];
+    return "-";
+  };
+
+  const isMobile = () => typeof window !== "undefined" && window.innerWidth < 768;
+
+  const toggleExpand = (driverId: string) => {
+    if (!isMobile() || !hasMobileSecondaryColumns) return;
+    setExpandedRowIds((prev) => ({ ...prev, [driverId]: !prev[driverId] }));
   };
 
   return (
-    <div className="w-full max-w-[1200px] px-6 mb-12 relative z-20">
-      <div className="bg-white dark:bg-[#1a1612] rounded-2xl shadow-2xl border border-[#e6e1db] dark:border-[#2d261f] overflow-hidden">
-        <div className="px-8 py-6 border-b border-[#e6e1db] dark:border-[#2d261f] flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h3 className="text-xl font-black uppercase tracking-tight italic">赛事积分榜</h3>
-          
-          {/* Only show Tier Filter if Tier column exists */}
-          {displayColumns.includes('等级') && (
-            <div className="flex gap-1 bg-[#f5f3f0] dark:bg-[#2d261f] p-1 rounded-full overflow-x-auto max-w-full w-full justify-between md:justify-start md:w-auto">
-              <button 
-                onClick={() => setFilterTier('all')}
-                className={`flex-shrink-0 px-2 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterTier === 'all' ? 'bg-primary text-black' : 'text-[#8a7960] hover:text-[#181511]'}`}
-              >
-                总排名
-              </button>
-              <button 
-                onClick={() => setFilterTier('S')}
-                className={`flex-shrink-0 px-2 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterTier === 'S' ? 'bg-primary text-black' : 'text-[#8a7960] hover:text-[#181511]'}`}
-              >
-                S级
-              </button>
-              <button 
-                onClick={() => setFilterTier('AB')}
-                className={`flex-shrink-0 px-2 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterTier === 'AB' ? 'bg-primary text-black' : 'text-[#8a7960] hover:text-[#181511]'}`}
-              >
-                A/B级
-              </button>
-              <button 
-                onClick={() => setFilterTier('CR')}
-                className={`flex-shrink-0 px-2 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${filterTier === 'CR' ? 'bg-primary text-black' : 'text-[#8a7960] hover:text-[#181511]'}`}
-              >
-                C/R级
-              </button>
-            </div>
+    <Card>
+      <CardHeader className="gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="text-xl">赛事积分榜</CardTitle>
+          {!isRally && displayColumns.includes("等级") && (
+            <Tabs value={filterTier} onValueChange={setFilterTier}>
+              <TabsList className="h-9 bg-muted/70">
+                <TabsTrigger value="all">总排名</TabsTrigger>
+                <TabsTrigger value="S">S级</TabsTrigger>
+                <TabsTrigger value="AB">A/B级</TabsTrigger>
+                <TabsTrigger value="CR">C/R级</TabsTrigger>
+              </TabsList>
+            </Tabs>
           )}
         </div>
-        <div className="overflow-x-auto max-h-[350px] md:max-h-[600px] overflow-y-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="sticky top-0 z-30 bg-[#fcfbf9] dark:bg-[#231d16] text-xs md:text-sm font-bold text-[#8a7960]">
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="h-[440px] overflow-auto rounded-md border">
+          <Table className="table-fixed md:table-auto">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
                 {displayColumns.map((col) => (
-                  <th 
-                    key={col} 
-                    className={getHeaderClass(col)}
-                    style={col === '车手ID' ? { transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' } : undefined}
+                  <TableHead
+                    key={col}
+                    className={`sticky top-0 z-20 whitespace-nowrap bg-muted/95 backdrop-blur ${col === "排名" ? "w-[56px] md:w-auto" : ""} ${col === "车手ID" ? "w-[46%] md:w-auto" : ""} ${col === "等级" ? "w-[64px] md:w-auto text-center" : ""} ${col === mobileScoreColumn ? "w-[64px] md:w-auto" : ""} ${!noRightAlignColumns.has(col) ? "text-right" : ""} ${mobileSecondaryColumns.includes(col) ? "hidden md:table-cell" : ""}`}
                   >
                     {col}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#e6e1db] dark:divide-[#2d261f]">
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {isLoading ? (
-                Array.from({ length: 8 }).map((_, index) => (
-                  <tr key={`skeleton-${index}`} className="animate-pulse">
-                    {displayColumns.map((col, colIndex) => (
-                       <td key={col} className={getCellClass(col)} style={col === '车手ID' ? { transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' } : undefined}>
-                         <div className={`h-6 bg-gray-200 dark:bg-gray-700 rounded ${col === '车手ID' ? 'w-32' : 'w-12 mx-auto'}`}></div>
-                       </td>
+                Array.from({ length: 8 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    {displayColumns.map((col) => (
+                      <TableCell key={col} className={mobileSecondaryColumns.includes(col) ? "hidden md:table-cell" : ""}>
+                        <div className="h-5 w-16 animate-pulse rounded bg-muted" />
+                      </TableCell>
                     ))}
-                  </tr>
+                  </TableRow>
                 ))
+              ) : filteredDrivers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={displayColumns.length} className="py-10 text-center text-muted-foreground">
+                    当前无符合条件的车手数据。
+                  </TableCell>
+                </TableRow>
               ) : (
-                filteredDrivers.map((driver) => (
-                <tr key={driver.id} className="hover:bg-[#fcfbf9] dark:hover:bg-[#231d16] transition-colors group">
-                  {displayColumns.map((col) => {
-                    if (col === '排名') {
-                      return (
-                        <td key={col} className="px-1 py-1 md:px-4 md:py-1.5">
-                          <div className="flex items-center gap-1 md:gap-2 justify-center">
-                            <span className={`text-base md:text-xl font-black italic ${driver.rank === 1 ? 'text-yellow-500' : driver.rank === 2 ? 'text-slate-400' : driver.rank === 3 ? 'text-amber-600' : ''}`}>
-                              {driver.rank}
-                            </span>
-                            {driver.trend === RankTrend.UP && <span className="material-symbols-outlined text-green-500 text-sm md:text-base font-bold">arrow_drop_up</span>}
-                            {driver.trend === RankTrend.DOWN && <span className="material-symbols-outlined text-red-500 text-sm md:text-base font-bold">arrow_drop_down</span>}
-                            {driver.trend === RankTrend.STABLE && <span className="material-symbols-outlined text-gray-400 text-sm md:text-base font-bold">remove</span>}
-                            {driver.trend === RankTrend.NEW && <span className="material-symbols-outlined text-blue-500 text-sm md:text-base font-bold">fiber_new</span>}
-                          </div>
-                        </td>
-                      );
-                    }
-                    if (col === '车手ID') {
-                      return (
-                        <td 
-                          key={col}
-                          style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)' }}
-                          className={getCellClass(col)}
-                        >
-                          {driver.name || '-'}
-                        </td>
-                      );
-                    }
-                    if (col === '等级') {
-                      return (
-                        <td key={col} className="px-1 py-1 md:px-4 md:py-1.5">
-                          <div className="flex justify-center">
-                            <img 
-                              src={tierIcons[driver.tier as string] || tierIcons['R']} 
-                              alt={driver.tier} 
-                              className="w-[40px] h-[40px] object-contain"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.parentElement!.innerHTML = `<span class="text-xs font-bold text-[#8a7960]">${driver.tier}</span>`;
-                              }}
-                            />
-                          </div>
-                        </td>
-                      );
-                    }
-                    if (col === '完赛 | 总场次') {
-                      return (
-                        <td key={col} className={getCellClass(col)}>
-                          {driver.displayRaces ? (
-                            <span className="text-[#181511] dark:text-white">{driver.displayRaces.replace('｜', ' | ')}</span>
-                          ) : (
-                            <>
-                              <span className="text-[#181511] dark:text-white">{driver.finishedRaces}</span> | {driver.totalRaces}
-                            </>
-                          )}
-                        </td>
-                      );
-                    }
-                    // Generic handling for known and unknown fields
-                    let content: React.ReactNode = '-';
-                    if (col === '积分') content = driver.points;
-                    else if (col === '安全分') content = driver.safetyScore;
-                    else if (col === '领奖台') content = driver.podiums;
-                    else if (driver.rawJson && driver.rawJson[col] !== undefined) {
-                        content = driver.rawJson[col];
-                    }
+                filteredDrivers.map((driver) => {
+                  const expanded = Boolean(expandedRowIds[driver.id]);
+                  return (
+                    <React.Fragment key={driver.id}>
+                      <TableRow
+                        onClick={() => toggleExpand(driver.id)}
+                        className={hasMobileSecondaryColumns ? "cursor-pointer md:cursor-default" : ""}
+                      >
+                        {displayColumns.map((col) => {
+                          if (mobileSecondaryColumns.includes(col)) return null;
 
-                    return (
-                        <td key={col} className={getCellClass(col)}>
-                            {content}
-                        </td>
-                    );
-                  })}
-                </tr>
-              ))
+                          if (col === "排名") {
+                            return (
+                              <TableCell key={col}>
+                                <div className="flex items-center gap-2 font-semibold">
+                                  <span>{driver.rank}</span>
+                                  {trendNode(driver.trend)}
+                                </div>
+                              </TableCell>
+                            );
+                          }
+
+                          if (col === "车手ID") {
+                            return (
+                              <TableCell key={col} className="w-[46%] max-w-0 font-semibold md:w-auto md:max-w-none">
+                                <span className="block truncate whitespace-nowrap md:max-w-none">{driver.name || "-"}</span>
+                              </TableCell>
+                            );
+                          }
+
+                          if (col === "等级") {
+                            const safeTier = String(driver.tier || "R");
+                            return (
+                              <TableCell key={col} className="w-[64px] whitespace-nowrap text-center md:w-auto">
+                                <div className="flex items-center justify-center">
+                                  <img src={tierIcons[safeTier] || tierIcons.R} alt={safeTier} className="h-7 w-7 object-contain md:h-10 md:w-10" />
+                                </div>
+                              </TableCell>
+                            );
+                          }
+
+                          const value = getValue(driver, col);
+                          return (
+                            <TableCell
+                              key={col}
+                              className={`whitespace-nowrap ${col === mobileScoreColumn ? "w-[64px] md:w-auto" : ""} ${!noRightAlignColumns.has(col) ? "text-right" : ""}`}
+                            >
+                              <div className={`flex items-center gap-1 ${!noRightAlignColumns.has(col) ? "justify-end" : ""}`}>
+                                <span>{value}</span>
+                                {hasMobileSecondaryColumns && col === mobileScoreColumn && (
+                                  <span className="md:hidden">
+                                    {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                          );
+                        })}
+
+                        {displayColumns
+                          .filter((col) => mobileSecondaryColumns.includes(col))
+                          .map((col) => (
+                            <TableCell key={col} className={`hidden md:table-cell ${!noRightAlignColumns.has(col) ? "text-right" : ""}`}>
+                              {col === "等级" ? null : getValue(driver, col)}
+                            </TableCell>
+                          ))}
+                      </TableRow>
+
+                      {hasMobileSecondaryColumns && (
+                        <TableRow className="md:hidden hover:bg-transparent">
+                          <TableCell colSpan={mobileCoreColumns.length} className="p-0">
+                            <div
+                              className={`overflow-hidden bg-muted/85 transition-all duration-300 ease-out dark:bg-black/45 ${
+                                expanded ? "max-h-72 opacity-100" : "max-h-0 opacity-0"
+                              }`}
+                            >
+                              <div className="p-3">
+                                <div className={`grid gap-2 ${mobileGridClass}`}>
+                                  {mobileSecondaryColumns.map((col) => (
+                                    <div key={`${driver.id}-${col}`} className="rounded-md border bg-background/80 p-2 shadow-sm">
+                                      <p className="text-[11px] text-muted-foreground">{col}</p>
+                                      <p className="mt-1 text-sm font-semibold">{String(getValue(driver, col))}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-        <div className="px-8 py-6 bg-white dark:bg-[#1a1612] text-center border-t border-[#e6e1db] dark:border-[#2d261f]">
-          <p className="text-sm font-medium text-[#8a7960]">滑动查看更多，请持续关注赛事更新。</p>
-        </div>
-      </div>
-    </div>
+        <p className="flex items-center gap-1 text-sm text-muted-foreground">
+          <Dot className="h-4 w-4" /> 数据定期更新，向下滚动可查看更多名次。
+        </p>
+      </CardContent>
+    </Card>
   );
 };
 

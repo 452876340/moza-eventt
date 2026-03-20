@@ -28,6 +28,7 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
     switch (seriesId) {
       case 'zhuzhou': 
         drivers = MOCK_DRIVERS_ZHUZHOU; 
+        columns = ['排名', '车手ID', '等级', '赛事分', '安全分', '领奖台', '完赛 | 总场次'];
         break;
       case 'rally': 
         drivers = MOCK_DRIVERS_RALLY; 
@@ -113,6 +114,11 @@ export const fetchDrivers = async (seriesId: string = 'monthly', roundId?: strin
     } catch (e) {
       console.warn('Failed to parse metadata columns:', e);
     }
+  }
+
+  // If series is 'zhuzhou', explicitly set columns to '赛事分'
+  if (seriesId === 'zhuzhou') {
+    columns = ['排名', '车手ID', '等级', '赛事分', '安全分', '领奖台', '完赛 | 总场次'];
   }
 
   let jsonCount = 0;

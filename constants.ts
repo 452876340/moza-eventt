@@ -5,16 +5,16 @@ export const BACKGROUND_IMAGE_URL = 'https://images.unsplash.com/photo-156860511
 
 export const SERIES_BANNERS: Record<string, string> = {
   monthly: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguqOQzAYosqqWzwIwgA84jgY.jpg',
-  zhuzhou: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguqOQzAYo36ys8gcwgA84jgY.jpg',
-  rally: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguaOQzAYogtyw-wEwgA84jgY.jpg',
+  zhuzhou: 'https://29673492.s21i.faiusr.com/2/ABUIABACGAAg1PbyzQYoruCuhgMwgA84oAY.jpg.webp',
+  rally: 'https://29673492.s21i.faiusr.com/2/ABUIABACGAAg1PbyzQYoiqOZ9wIwgA84oAY.jpg.webp',
   iracing: 'https://29673492.s21i.faimallusr.com/2/1/ABUIABACGAAguqOQzAYozv3x7wUw_Ao4kwY.jpg',
 };
 
 export const SERIES_LIST: Series[] = [
-  { id: 'monthly', name: '月度锦标赛' },
-  { id: 'zhuzhou', name: '株洲速度节' },
-  { id: 'rally', name: '飞驰拉力赛' },
-  { id: 'iracing', name: 'iRacing League' },
+  { id: 'monthly', name: 'MOZA 2026 月度锦标赛' },
+  { id: 'zhuzhou', name: 'MOZA&CTCC模拟赛车公开赛' },
+  { id: 'rally', name: '飞驰吧！MOZA 拉力赛' },
+  { id: 'iracing', name: 'MOZA 2026 iRacing 联赛' },
 ];
 
 export const MOCK_DRIVERS_MONTHLY: Driver[] = [
@@ -83,7 +83,7 @@ export const MOCK_ROUNDS_MAP: Record<string, RaceRound[]> = {
 export const SERIES_RULES: Record<string, SeriesRules> = {
   monthly: {
     seriesId: 'monthly',
-    title: '月度锦标赛',
+    title: 'MOZA 2026 月度锦标赛',
     description: '根据车手排名评定等级：S级：排名前5% | A级：排名前10% | B级：排名前30% | C级：排名前50% | Rookie级：其他车手\n等级计算原则：车手等级以最高等级为准，不重复计算。',
     groups: [
       {
@@ -105,7 +105,7 @@ export const SERIES_RULES: Record<string, SeriesRules> = {
   },
   zhuzhou: {
     seriesId: 'zhuzhou',
-    title: '株洲速度节',
+    title: 'MOZA&CTCC模拟赛车公开赛',
     description: '比赛时间：每周三21:00举行',
     groups: [
       {
@@ -127,8 +127,8 @@ export const SERIES_RULES: Record<string, SeriesRules> = {
   },
   rally: {
     seriesId: 'rally',
-    title: '飞驰拉力赛',
-    description: '',
+    title: '飞驰吧！MOZA 拉力赛',
+    description: '拉力赛是MOZA平台特有的一个激动人心的赛事系列，考验车手的驾驶技巧和对复杂路况的适应能力。',
     groups: [
       {
         title: '资格赛周期',
@@ -145,7 +145,7 @@ export const SERIES_RULES: Record<string, SeriesRules> = {
   },
   iracing: {
     seriesId: 'iracing',
-    title: 'iRacing League',
+    title: 'MOZA 2026 iRacing 联赛',
     description: '根据车手排名评定等级：S级：排名前5% | A级：排名前10% | B级：排名前30% | C级：排名前50% | Rookie级：其他车手\n等级计算原则：车手等级以最高等级为准，不重复计算。',
     groups: [
       {
