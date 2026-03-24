@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import FilterBar from "./components/FilterBar";
 import Leaderboard from "./components/Leaderboard";
@@ -69,11 +69,6 @@ const App: React.FC = () => {
     };
   }, [selectedRound, selectedSeries]);
 
-  const filteredDrivers = useMemo(
-    () => drivers.filter((d) => d.name.toLowerCase().includes(search.toLowerCase()) || d.id.toLowerCase().includes(search.toLowerCase())),
-    [drivers, search]
-  );
-
   const currentSeriesRules = SERIES_RULES[selectedSeries];
 
   useEffect(() => {
@@ -95,19 +90,35 @@ const App: React.FC = () => {
   }, [drivers, raceRounds, selectedSeries, selectedRound]);
 
   return (
-    <div ref={appRef} className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-4 pb-10 pt-4 md:px-6">
-      <Header title={currentSeriesRules?.title} seriesId={selectedSeries} rules={currentSeriesRules} />
-      <FilterBar
-        search={search}
-        setSearch={setSearch}
-        selectedRound={selectedRound}
-        setSelectedRound={setSelectedRound}
-        rounds={raceRounds}
-        selectedSeries={selectedSeries}
-        setSelectedSeries={setSelectedSeries}
+    <div ref={appRef} className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 px-4 pb-10 pt-4 md:px-6">
+      <Header
+        title={currentSeriesRules?.title}
+        seriesId={selectedSeries}
+        rules={currentSeriesRules}
         seriesList={SERIES_LIST}
+        selectedSeries={selectedSeries}
+        onSeriesChange={setSelectedSeries}
       />
-      <Leaderboard key={selectedSeries} drivers={filteredDrivers} seriesId={selectedSeries} isLoading={loading} columns={columns} />
+      {/* 桌面端赛事切换，移动端隐藏（移动端已融入 Header） */}
+      <div className="hidden md:block">
+        <FilterBar
+          selectedSeries={selectedSeries}
+          setSelectedSeries={setSelectedSeries}
+          seriesList={SERIES_LIST}
+        />
+      </div>
+      <Leaderboard
+        key={selectedSeries}
+        drivers={drivers}
+        seriesId={selectedSeries}
+        isLoading={loading}
+        columns={columns}
+        rounds={raceRounds}
+        selectedRound={selectedRound}
+        onRoundChange={setSelectedRound}
+        search={search}
+        onSearchChange={setSearch}
+      />
     </div>
   );
 };
